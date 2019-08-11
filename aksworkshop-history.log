@@ -1,0 +1,116 @@
+  157  az account set -s b31e503e-af9f-4ea5-9325-19e68e88c6f4
+  158  az aks get-versions -l westeurope
+  159  az aks get-versions -l westeurope --query 'orchestrators[-1].orchestratorVersion'
+  160  az aks get-versions -l westeurope --query 'orchestrators[-1].orchestratorVersion' -o tsv
+  161  version=$(az aks get-versions -l westeurope --query 'orchestrators[-1].orchestratorVersion' -o tsv)
+  162  az aks create --resource-group askworkshop --name leapakscluster --location westeurope --kubernetes-version $version --generate-ssh-keys
+  163  az aks create --resource-group aksworkshop --name leapakscluster --location westeurope --kubernetes-version $version --generate-ssh-keys
+  164  code helm-rbac.yaml
+  165  cat helm-rbac.yaml 
+  166  clear
+  167  kubeclt apply -f helm-rbac.yaml 
+  168  az aks get-credentials --resource-group aksworkshop --name leapakscluster
+  169  kubectl get nodes
+  170  kubectl apply -f helm-rbac.yaml
+  171  helm init --service-account tiller
+  172  helm install stable/mongodb  --name orders-mongo --set mongodbUsername=orders-user,mongodbPassword=orders-password,mongodbDatabase=akschallenge
+  173  export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace default orders-mongo-mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 --decode)
+  174  export MONGODB_PASSWORD=$(kubectl get secret --namespace default orders-mongo-mongodb -o jsonpath="{.data.mongodb-password}" | base64 --decode)
+  175  kubectl create secret generic mongodb --from-literal=mongoHost='orders-mongo-mongodb.default.svc.cluster.local' --from-listeral=mongoUser='orders-user' --from-literal=mongoPassword='orders-password'
+  176* kubectl create secret generic mongodb --from-literal=mongoHost='orders-mongo-mongodb.default.svc.cluster.local' --from-literal=mongoUser='orders-user' --from-literal=mongoPassword='orders-[Bpassword'
+  177  code captureorder-deployment.yaml
+  178  kubectl apply -f captureorder-deployment.yaml
+  179  kubectl get pods -l app=captureorder -w
+  180  code captureorder-service.yaml
+  181  kubectl apply -f captureorder-service.yaml
+  182  kubectl get service captureorder -o jsonpath="{.status.loadBalancer.ingress[*].ip}" -w
+  183  code frontend-deployment.yaml
+  184  az account list
+  185  ls
+  186  code frontend-deployment.yaml 
+  187  az aks get-credentials --resource-group aksworkshop --name leapakscluster
+  188  kubeclt get nodes
+  189  kubectl get nodes
+  190  kubectl get svc
+  191  kubectl apply -f frontend-deployment.yaml
+  192  kubectl get pods -l app=frontend -w
+  193  code frontend-service.yaml
+  194  az account list
+  195  az account set -s b31e503e-af9f-4ea5-9325-19e68e88c6f4
+  196  az aks get-credentials --resource-group aksworkshop --name leapakscluster
+  197  code frontend-service.yaml 
+  198  kubectl apply -f frontend-service.yaml 
+  199  helm repo update
+  200  helm upgrade --install ingress stable/nginx-ingress --namespace ingress
+  201  kubectl get svc -n ingress
+  202  kubectl get svc -n ingress ingress-nginx-ingress-controller -o jsonpath="{.status.loadbalancer.ingress[*].ip}"
+  203  kubectl get svc  -n ingress    ingress-nginx-ingress-controller -o jsonpath="{.status.loadBalancer.ingress[*].ip}"
+  204  code frontend-ingress.yaml
+  205  kubectl apply -f frontend-ingress.yaml 
+  206  cat frontend-ingress.yaml 
+  207  helm install stable/cert-manager --name cert-manager --set ingressShim.defaultIssuerName=letsencrypt --set ingressShim.defaultIssuerKind=ClusterIssuer --version v0.5.2
+  208  code letsencrypt-clusterissuer.yaml
+  209  kubectl apply -f letsencrypt-clusterissuer.yaml 
+  210  code frontend-ingress-tls.yaml
+  211  kubectl apply -f frontend-ingress-tls.yaml
+  212  kubectl describe certificate frontend
+  213  az 
+  214* az aks enable-addons --resource-group aksworkshop --name leapakscluster --addons monitoring --workspace-resource-id /subscriptions/b31e503e-af9f-4ea5-9325-19e68e88c6f4/resourcegroups/aksworkshop/providers/microsoft.operationalinsights/workspaces/leapaksworkshopanalytic
+  215  history
+  216  az aks get-credentials --resource-group aksworkshop --name leapakscluster
+  217  code logreader-rbac.yaml
+  218  kubectl apply -f logreader-rbac.yaml 
+  219  code prommetrics-demo.yaml
+  220  kubectl apply -f prommetrics-demo.yaml 
+  221  kubectl apply -f prommetrics-demo.yaml
+  222  code prommetrics-demo.yaml 
+  223  kubectl apply -f prommetrics-demo.yaml
+  224  kubectl get pods | grep metrics
+  225  az aks get-credentials --resource-group aksworkshop --name leapakscluster
+  226  kubectl apply -f configmap.yaml 
+  227  kubectl exec -it prommetrics-demo-7c645c76b-8rscn bash
+  228  clear
+  229  cat frontend-ingress.yaml 
+  230  ls *.yaml
+  231  cat captureorder-service.yaml 
+  232  cat letsencrypt-clusterissuer.yaml 
+  233  cat captureorder-deployment.yaml 
+  234  clear
+  235  kubectl get svc
+  236  az container create -g aksworkshop -n loadtest --image azch/loadtest --restart-policy Never -e SERVICE_IP=23.97.154.5
+  237  az container logs -g aksworkshop -n loadtest
+  238  az container delete -g aksworkshop -n loadtest
+  239  code captureorder-hpa.yaml
+  240  kubectl apply -f captureorder-hpa.yaml 
+  241  az container delete -g <resource-group> -n loadtest
+  242  az container delete -g aksworkshop -n loadtest
+  243  az container create -g aksworkshop -n loadtest --image azch/loadtest --restart-policy Never -e SERVICE_IP=23.97.154.5
+  244  kubectl get pods -l  app=captureorder
+  245  az container delete -g aksworkshop -n loadtest
+  246  az acr create --resource-group aksworkshop --name leapaksregistry --sku Standard --location westeurope
+  247  kubectl get pods -l  app=captureorder
+  248  git clone https://github.com/Azure/azch-captureorder.git
+  249  cd azch-captureorder/
+  250  az acr build -t "captureorder:{{.Run.ID}}" -r leapaksregistry .
+  251  code allow-aks-acr-access.sh
+  252  chmod a+x allow-aks-acr-access.sh 
+  253  ./allow-aks-acr-access.sh 
+  254  kubectl edit deployment captureorder
+  255  kubectl get pods -l app=captureorder -w
+  256  kubectl get pods -l app=captureorder
+  257  kubectl get pods -l app=captureorder =w
+  258  kubectl get pods -l app=captureorder -w
+  259  az aks get-credentials --resource-group aksworkshop --name leapakscluster
+  260  az account list
+  261  az account set -s 23c36f7b-d987-4fd4-9605-3b8bf3f69200
+  262  ls
+  263  cat frontend-ingress.yaml 
+  264  cd azch-captureorder/
+  265  ls
+  266  ls -al
+  267  cd ..
+  268  ls -al
+  269  ls -alt
+  270  vim configmap.yaml 
+  271  kubectl edit deployment captureorder
+  272  history >> aksworkshop-history.log
