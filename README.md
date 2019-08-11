@@ -1,1 +1,1 @@
-Files and bash history for the [Azure Kubernetes Workshop ](https://aksworkshop.io/)
+Files and bash history for the [Azure Kubernetes Workshop](https://aksworkshop.io/)
